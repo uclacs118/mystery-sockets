@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include "rl.h"
 #include "getip.h"
+#include <signal.h>
 
 // char line_read[65537];
 char ip_str[65537];
@@ -62,6 +63,8 @@ void replace_escape_sequences_in_place(char *str) {
 
 
 int main() {
+  // Since our pseudo terminal doesn't know how to handle sigpipe, just ignore it
+  signal(SIGPIPE, SIG_IGN);
   initialize_readline();
 
   int sock = -1;
@@ -103,7 +106,7 @@ int main() {
         printErr();
       }
     } else if(strncmp(line_read, "connect", 7) == 0) {
-      if(sscanf(line_read, "connect %d %s %d", &sock, ip_str, &port) != 3){
+      if(sscanf(line_read, "connect %d %65500s %d", &sock, ip_str, &port) != 3){
         printf("Usage: connect SOCKET IP PORT\n");
         printf("Example: connect 3 192.168.1.1 1234\n");
         continue;
@@ -144,7 +147,7 @@ int main() {
         printErr();
       }
     } else if(strncmp(line_read, "bind", 4) == 0) {
-      if(sscanf(line_read, "bind %d %s %d", &sock, ip_str, &port) != 3){
+      if(sscanf(line_read, "bind %d %65500s %d", &sock, ip_str, &port) != 3){
         printf("Usage: bind SOCKET IP PORT\n");
         printf("  use `any` for 0.0.0.0\n");
         printf("Example: bind 3 any 1234\n");
@@ -341,6 +344,7 @@ int main() {
       }
       printf("Supported syscalls: socket, bind, listen, accept, connect, send, recv, close\n");
       printf("Supported commands: getip, exit\n");
+      printf("Enter a command to see its usage\n");
     }
   }
   printf("Exiting...\n");

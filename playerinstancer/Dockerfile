@@ -1,7 +1,7 @@
 FROM alpine:3.19
 
-ENV USER=george
-ENV PASSWORD=varghese
+ENV USER=networking
+ENV PASSWORD=isfun
 
 WORKDIR /$USER
 
