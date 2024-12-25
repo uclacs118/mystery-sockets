@@ -8,3 +8,20 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "1000:22"
+  icebreaker:
+    build:
+      context: .
+      dockerfile: icebreaker/Dockerfile
+    ports:
+      - "80:8080"
+    networks:
+      - iso
+networks:
+  iso:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/8
+          ip_range: 10.100.0.0/16
+    name: iso
+    attachable: true
