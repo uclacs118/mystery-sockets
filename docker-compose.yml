@@ -7,4 +7,4 @@ services:
       # Allow managing docker from inside container. 
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "1111:22"
+      - "1000:22"
