@@ -235,7 +235,7 @@ int main() {
       
       int new_sock = accept(sock, (struct sockaddr*)&addr, &socklen);
       tmp_errno = errno;
-      printVal(new_sock, "new_sock");
+      // printVal(new_sock, "new_sock");
       if(new_sock == -1) {
         printErr();
         continue;
