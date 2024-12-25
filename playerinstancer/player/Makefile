@@ -4,7 +4,7 @@ CFLAGS = -Wall -g
 LDFLAGS = -lreadline
 
 # Source files
-SRC = socket.c rl.c
+SRC = socket.c rl.c getip.c
 OBJ = $(SRC:.c=.o)
 
 # Target executable

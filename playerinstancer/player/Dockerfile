@@ -2,7 +2,7 @@ FROM gcc:14-bookworm AS build
 
 WORKDIR /app
 
-COPY socket.c rl.c rl.h Makefile /app/
+COPY socket.c rl.c rl.h getip.c getip.h Makefile /app/
 RUN make
 
 FROM debian:bookworm-slim

@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include "rl.h"
+#include "getip.h"
 
 // char line_read[65537];
 char ip_str[65537];
@@ -86,6 +87,8 @@ int main() {
 
     if(strncmp(line_read, "exit", 4) == 0){
       break;
+    } else if (strncmp(line_read, "getip", 5) == 0) {
+      get_ip_address();
     } else if(strncmp(line_read, "socket", 6) == 0){
       // Print code
       printCode("sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);");
@@ -336,8 +339,8 @@ int main() {
       if (strncmp(line_read, "help", 4) != 0) {
         printf("Unknown command: %s\n", line_read);
       }
-      printf("Supported: socket, bind, listen, accept, connect, send, recv, close\n");
-      printf("Type 'exit' to exit\n");
+      printf("Supported syscalls: socket, bind, listen, accept, connect, send, recv, close\n");
+      printf("Supported commands: getip, exit\n");
     }
   }
   printf("Exiting...\n");
