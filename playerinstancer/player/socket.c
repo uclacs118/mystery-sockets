@@ -40,6 +40,26 @@ void printErr() {
   lineSleep();
 }
 
+
+void replace_escape_sequences_in_place(char *str) {
+    int write_index = 0; // Index to write into
+    int read_index = 0;  // Index to read from
+
+    while (str[read_index] != '\0') {
+        if (str[read_index] == '\\' && str[read_index + 1] == 'n') {
+            str[write_index++] = '\n'; // Replace \n with newline
+            read_index += 2;           // Skip past \ and n
+        } else if (str[read_index] == '\\' && str[read_index + 1] == 'r') {
+            str[write_index++] = '\r'; // Replace \r with carriage return
+            read_index += 2;           // Skip past \ and r
+        } else {
+            str[write_index++] = str[read_index++]; // Copy character as-is
+        }
+    }
+    str[write_index] = '\0'; // Null-terminate the string
+}
+
+
 int main() {
   initialize_readline();
 
@@ -109,7 +129,7 @@ int main() {
       }
 
       // Print code
-      printf("$ ret = connect(%d, (sockaddr*)&addr, sizeof(addr));", sock);
+      printf("$ ret = connect(%d, (sockaddr*)&addr, sizeof(addr));\n", sock);
       lineSleep();
 
       // Connect to a server
@@ -238,13 +258,15 @@ int main() {
     } else if(strncmp(line_read, "send", 4) == 0) {
       if(sscanf(line_read, "send %d %[^\n]", &sock, buf) != 2){
         printf("Usage: send SOCKET STRING\n");
-        printf("Example: send 3 GET /\n");
+        printf("Example: send 3 GET /\\r\\n\n");
+        printf("Note: only \\n, \\r, and \\\\ escape sequences are supported\n");
         continue;
       }
 
+
       // Print code
       printf("$ ret = send(%d, \"%s\", %lu, 0);\n", sock, buf, strlen(buf));
-
+      replace_escape_sequences_in_place(buf);
       // Send data to the socket (you may also use write)
       // Document: https://man7.org/linux/man-pages/man2/send.2.html
       // Length is strlen(buf)
@@ -258,8 +280,6 @@ int main() {
       if(ret == -1){
         printErr();
         // printf("Error with code %d: %s\n", errno, strerror(errno));
-      } else {
-        printVal(ret, "ret");
       }
     } else if(strncmp(line_read, "recv", 4) == 0) {
       if(sscanf(line_read, "recv %d %d", &sock, &buflen) != 2){
@@ -317,8 +337,9 @@ int main() {
         printf("Unknown command: %s\n", line_read);
       }
       printf("Supported: socket, bind, listen, accept, connect, send, recv, close\n");
+      printf("Type 'exit' to exit\n");
     }
   }
-
+  printf("Exiting...\n");
   return 0;
 }

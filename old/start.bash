@@ -27,7 +27,7 @@ docker build -t roundtrip roundtrip
 docker build -t progress progress
 
 # Create network
-docker network create --subnet 10.0.0.0/16 iso
+docker network create --subnet 10.0.0.0/8 iso
 
 # Run players
 for i in $(seq 0 $n); do
