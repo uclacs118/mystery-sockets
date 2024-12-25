@@ -7,8 +7,9 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include "rl.h"
 
-char cmd[65537];
+// char line_read[65537];
 char ip_str[65537];
 char buf[65537];
 
@@ -40,6 +41,8 @@ void printErr() {
 }
 
 int main() {
+  initialize_readline();
+
   int sock = -1;
   struct sockaddr_in addr;
   socklen_t socklen;
@@ -57,12 +60,13 @@ int main() {
   printf("INTERNAL NETSIFT TOOLCHAIN. Type help for available commands.\n");
 
   //printErr(5);
+  
+  char* line_read = NULL;
+  while ((line_read = rl_gets()) != NULL) {
 
-
-  for(printf("> "); fgets(cmd, sizeof(cmd), stdin) != NULL; printf("> ")){
-    if(strncmp(cmd, "exit", 4) == 0){
+    if(strncmp(line_read, "exit", 4) == 0){
       break;
-    } else if(strncmp(cmd, "socket", 6) == 0){
+    } else if(strncmp(line_read, "socket", 6) == 0){
       // Print code
       printCode("sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);");
 
@@ -75,8 +79,8 @@ int main() {
       if (sock == -1) {
         printErr();
       }
-    } else if(strncmp(cmd, "connect", 7) == 0) {
-      if(sscanf(cmd, "connect %d %s %d", &sock, ip_str, &port) != 3){
+    } else if(strncmp(line_read, "connect", 7) == 0) {
+      if(sscanf(line_read, "connect %d %s %d", &sock, ip_str, &port) != 3){
         printf("Usage: connect SOCKET IP PORT\n");
         printf("Example: connect 3 192.168.1.1 1234\n");
         continue;
@@ -116,8 +120,8 @@ int main() {
       if(ret == -1) {
         printErr();
       }
-    } else if(strncmp(cmd, "bind", 4) == 0) {
-      if(sscanf(cmd, "bind %d %s %d", &sock, ip_str, &port) != 3){
+    } else if(strncmp(line_read, "bind", 4) == 0) {
+      if(sscanf(line_read, "bind %d %s %d", &sock, ip_str, &port) != 3){
         printf("Usage: bind SOCKET IP PORT\n");
         printf("  use `any` for 0.0.0.0\n");
         printf("Example: bind 3 any 1234\n");
@@ -165,8 +169,8 @@ int main() {
       if(ret == -1){
         printErr();
       }
-    } else if(strncmp(cmd, "listen", 6) == 0) {
-      if(sscanf(cmd, "listen %d", &sock) != 1){
+    } else if(strncmp(line_read, "listen", 6) == 0) {
+      if(sscanf(line_read, "listen %d", &sock) != 1){
         printf("Usage: listen SOCKET\n");
         printf("Example: listen 3\n");
         continue;
@@ -183,8 +187,8 @@ int main() {
       if(ret == -1){
         printErr();
       }
-    } else if(strncmp(cmd, "accept", 6) == 0) {
-      if(sscanf(cmd, "accept %d", &sock) != 1){
+    } else if(strncmp(line_read, "accept", 6) == 0) {
+      if(sscanf(line_read, "accept %d", &sock) != 1){
         printf("Usage: accept SOCKET\n");
         printf("Example: accept 3\n");
         continue;
@@ -231,8 +235,8 @@ int main() {
       // printf("Now use socket %d to communicate with the client\n", new_sock);
       printVal(new_sock, "new_sock");
       printStr("Now use this new socket to communicate with the client");
-    } else if(strncmp(cmd, "send", 4) == 0) {
-      if(sscanf(cmd, "send %d %[^\n]", &sock, buf) != 2){
+    } else if(strncmp(line_read, "send", 4) == 0) {
+      if(sscanf(line_read, "send %d %[^\n]", &sock, buf) != 2){
         printf("Usage: send SOCKET STRING\n");
         printf("Example: send 3 GET /\n");
         continue;
@@ -257,8 +261,8 @@ int main() {
       } else {
         printVal(ret, "ret");
       }
-    } else if(strncmp(cmd, "recv", 4) == 0) {
-      if(sscanf(cmd, "recv %d %d", &sock, &buflen) != 2){
+    } else if(strncmp(line_read, "recv", 4) == 0) {
+      if(sscanf(line_read, "recv %d %d", &sock, &buflen) != 2){
         printf("Usage: recv SOCKET BUFFER-LENGTH\n");
         printf("Example: recv 3 2000\n");
         continue;
@@ -290,8 +294,8 @@ int main() {
         printf("$ printf(\"buf: %%s\\n\")\n");
         printf("buf: %s\n", buf);
       }
-    } else if(strncmp(cmd, "close", 5) == 0) {
-      if(sscanf(cmd, "close %d", &sock) != 1){
+    } else if(strncmp(line_read, "close", 5) == 0) {
+      if(sscanf(line_read, "close %d", &sock) != 1){
         printf("Usage: close SOCKET\n");
         printf("Example: close 3\n");
         continue;
@@ -309,9 +313,12 @@ int main() {
       }
       sock = -1;
     } else {
-      printf("Unknown command: %s\n", cmd);
+      if (strncmp(line_read, "help", 4) != 0) {
+        printf("Unknown command: %s\n", line_read);
+      }
       printf("Supported: socket, bind, listen, accept, connect, send, recv, close\n");
     }
   }
+
   return 0;
 }
