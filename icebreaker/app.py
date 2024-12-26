@@ -5,6 +5,7 @@ import socketserver
 import json
 from collections import defaultdict
 import time
+from datetime import datetime
 import traceback
 
 connection_data = defaultdict(dict)
@@ -25,7 +26,7 @@ LOCAL_IP = get_local_ip()
 def handle_tcp_client(client_socket, client_address):
     with connection_lock:
         connection_data[client_address] = {
-            'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'timestamp': datetime.now().isoformat(sep=' ', timespec='milliseconds'),
             'status': 'open',
             'data': ["Name:", "Major:"]
         }
@@ -34,12 +35,12 @@ def handle_tcp_client(client_socket, client_address):
         client_socket.send(b"Welcome to the ice breaker server! Note that everything you enter here will appear on the screen in the front, so don't put anything you don't want publicly listed. What is your name? ")
         name = client_socket.recv(1024).decode().strip()
         connection_data[client_address]['data'][0] = (f'Name: {name}')
-        connection_data[client_address]['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+        connection_data[client_address]['timestamp'] = datetime.now().isoformat(sep=' ', timespec='milliseconds')
         
         client_socket.send(b"What is your year and major? ")
         major = client_socket.recv(1024).decode().strip()
         connection_data[client_address]['data'][1] = (f'Major: {major}')
-        connection_data[client_address]['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+        connection_data[client_address]['timestamp'] = datetime.now().isoformat(sep=' ', timespec='milliseconds')
         
         client_socket.send(b"Nice! Now, open port 2222. I'll be trying to connect to your port 2222 repeatedly to send some important information.\n")
         connection_data[client_address]['status'] = 'outgoing_connection'
@@ -51,7 +52,7 @@ def handle_tcp_client(client_socket, client_address):
                 follow_up.connect((client_address[0], 2222))
                 large_text = "This is a large block of text " * 100
                 follow_up.send(large_text.encode())
-                connection_data[client_address]['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+                connection_data[client_address]['timestamp'] = datetime.now().isoformat(sep=' ', timespec='milliseconds')
                 connection_data[client_address]['status'] = 'completed'
                 follow_up.close()
                 break

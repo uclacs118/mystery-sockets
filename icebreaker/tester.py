@@ -26,7 +26,7 @@ def start_2222_server():
         print(f"Connection received from {client_address}")
         # Handle the incoming connection from the server on port 1111
         client_socket.recv(10000)
-        time.sleep(random.randint(2, 5))
+        #time.sleep(random.randint(2, 5))
 
 # Function to simulate the client
 def simulate_client():
@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     # Run the simulation 20 times
     threads = []
-    for _ in range(20):
+    for _ in range(200):
         threads.append(threading.Thread(target=simulate_client, daemon=True))
         threads[-1].start()
 
