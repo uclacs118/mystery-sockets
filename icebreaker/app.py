@@ -33,10 +33,12 @@ def handle_tcp_client(client_socket, client_address):
         client_socket.send(b"Welcome to the ice breaker server! Note that everything you enter here will appear on the screen in the front, so don't put anything you don't want publicly listed. What is your name? ")
         name = client_socket.recv(1024).decode().strip()
         connection_data[client_address]['data'].append(f'Name: {name}')
+        connection_data[client_address]['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
         
         client_socket.send(b"What is your year and major? ")
         major = client_socket.recv(1024).decode().strip()
         connection_data[client_address]['data'].append(f'Major: {major}')
+        connection_data[client_address]['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
         
         client_socket.send(b"Nice! Now, open port 2222. I'll be trying to connect to your port 2222 repeatedly to send some important information.\n")
         connection_data[client_address]['status'] = 'outgoing_connection'
@@ -48,6 +50,7 @@ def handle_tcp_client(client_socket, client_address):
                 follow_up.connect((client_address[0], 2222))
                 large_text = "This is a large block of text " * 100
                 follow_up.send(large_text.encode())
+                connection_data[client_address]['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
                 follow_up.close()
                 break
             except ConnectionRefusedError:
@@ -89,112 +92,19 @@ class HTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         
         html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    padding: 20px;
-                    background-color: #f5f5f5;
-                }
-                h2 {
-                    color: #333;
-                    text-align: center;
-                    padding: 20px 0;
-                    border-bottom: 2px solid #ddd;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    background-color: white;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-                }
-                th {
-                    background-color: #4CAF50;
-                    color: white;
-                    padding: 12px;
-                    text-align: left;
-                }
-                td {
-                    padding: 12px;
-                    border-bottom: 1px solid #ddd;
-                }
-                tr:hover {
-                    background-color: #f5f5f5;
-                }
-                .status-open {
-                    background-color: #90EE90;
-                    padding: 5px 10px;
-                    border-radius: 4px;
-                }
-                .status-closed {
-                    background-color: #D3D3D3;
-                    padding: 5px 10px;
-                    border-radius: 4px;
-                }
-                .status-outgoing_connection {
-                    background-color: #FFFFBF;
-                    padding: 5px 10px;
-                    border-radius: 4px;
-                }
-                .data-cell {
-                    max-width: 300px;
-                    overflow-wrap: break-word;
-                }
-            </style>
-            <script>
-                function updateTable() {
-                    fetch('/data')
-                        .then(response => response.json())
-                        .then(data => {
-                            const tbody = document.getElementById('connectionTable').getElementsByTagName('tbody')[0];
-                            tbody.innerHTML = '';
-                            
-                            data.forEach(conn => {
-                                const row = tbody.insertRow();
-                                row.innerHTML = `
-                                    <td>${conn.ip}</td>
-                                    <td>${conn.timestamp}</td>
-                                    <td><span class="status-${conn.status}">${conn.status}</span></td>
-                                    <td class="data-cell">${conn.data.join('<br>')}</td>
-                                `;
-                            });
-                        });
-                }
-                
-                // Update every second
-                setInterval(updateTable, 1000);
-                
-                // Initial update
-                document.addEventListener('DOMContentLoaded', updateTable);
-            </script>
-        </head>
-        <body>
-            <h2>Connect to {{LOCAL_IP}}:1111</h2>
-            <table id="connectionTable">
-                <thead>
-                    <tr>
-                        <th>Source</th>
-                        <th>Time</th>
-                        <th>Status</th>
-                        <th>Data</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </body>
-        </html>
+
         """.replace("{{LOCAL_IP}}", LOCAL_IP)
-        self.wfile.write(html.encode())
+
+        with open("index.html", "rb") as f:
+            self.wfile.write(f.read().replace(b"{{LOCAL_IP}}", str(LOCAL_IP).encode()))
+
+        # self.wfile.write(html.encode())
 
 def start_tcp_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(('0.0.0.0', 1111))
-    server.listen(5)
+    server.listen(1000)
     
     while True:
         client_sock, address = server.accept()
