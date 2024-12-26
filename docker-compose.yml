@@ -15,7 +15,8 @@ services:
     ports:
       - "80:8080"
     networks:
-      - iso
+      iso:
+        ipv4_address: 10.0.0.${INSTANCE_NUM:-2}
 networks:
   iso:
     ipam:
@@ -23,5 +24,6 @@ networks:
       config:
         - subnet: 10.0.0.0/8
           ip_range: 10.100.0.0/16
-    name: iso
+          gateway: 10.0.0.1
     attachable: true
+    name: iso

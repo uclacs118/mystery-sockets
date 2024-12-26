@@ -6,3 +6,6 @@ while [ "$quit" -ne 1 ]; do
 done
 
 rc-service sshd stop
+
+# Delete all old containers
+docker rm -f `docker ps -q --filter "ancestor=player"`

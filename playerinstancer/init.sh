@@ -2,8 +2,8 @@
 
 # Delete all old containers
 echo "Deleting old orphaned containers..."
-docker stop `docker ps -q --filter "ancestor=player"`
-docker rm `docker ps -q --filter "ancestor=player"`
+docker ps -q --filter "ancestor=player"
+docker rm -f `docker ps -q --filter "ancestor=player"`
 # docker network rm iso
 echo "Done!"
 
