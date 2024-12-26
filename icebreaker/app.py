@@ -5,6 +5,7 @@ import socketserver
 import json
 from collections import defaultdict
 import time
+import traceback
 
 connection_data = defaultdict(dict)
 connection_lock = threading.Lock()
@@ -26,18 +27,18 @@ def handle_tcp_client(client_socket, client_address):
         connection_data[client_address] = {
             'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
             'status': 'open',
-            'data': []
+            'data': ["Name:", "Major:"]
         }
     
     try:
         client_socket.send(b"Welcome to the ice breaker server! Note that everything you enter here will appear on the screen in the front, so don't put anything you don't want publicly listed. What is your name? ")
         name = client_socket.recv(1024).decode().strip()
-        connection_data[client_address]['data'].append(f'Name: {name}')
+        connection_data[client_address]['data'][0] = (f'Name: {name}')
         connection_data[client_address]['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
         
         client_socket.send(b"What is your year and major? ")
         major = client_socket.recv(1024).decode().strip()
-        connection_data[client_address]['data'].append(f'Major: {major}')
+        connection_data[client_address]['data'][1] = (f'Major: {major}')
         connection_data[client_address]['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
         
         client_socket.send(b"Nice! Now, open port 2222. I'll be trying to connect to your port 2222 repeatedly to send some important information.\n")
@@ -51,17 +52,29 @@ def handle_tcp_client(client_socket, client_address):
                 large_text = "This is a large block of text " * 100
                 follow_up.send(large_text.encode())
                 connection_data[client_address]['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+                connection_data[client_address]['status'] = 'completed'
                 follow_up.close()
                 break
             except ConnectionRefusedError:
                 time.sleep(1)
                 continue
+            except TimeoutError:
+                time.sleep(1)
+                continue
+            except ConnectionResetError:
+                time.sleep(1)
+                continue
+            except BrokenPipeError:
+                time.sleep(1)
+                continue
             
     except Exception as e:
         print(f"Error handling client {client_address}: {e}")
-    finally:
-        with connection_lock:
-            connection_data[client_address]['status'] = 'closed'
+        print(traceback.format_exc())
+        connection_data[client_address]['status'] = 'closed'
+    # finally:
+    #     with connection_lock:
+    #         connection_data[client_address]['status'] = 'closed'
 
 class HTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):

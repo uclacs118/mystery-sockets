@@ -26,7 +26,7 @@ def start_2222_server():
         print(f"Connection received from {client_address}")
         # Handle the incoming connection from the server on port 1111
         client_socket.recv(10000)
-        time.sleep(random.randint(1, 10))
+        time.sleep(random.randint(2, 5))
 
 # Function to simulate the client
 def simulate_client():
@@ -57,15 +57,15 @@ def simulate_client():
         time.sleep(random.randint(0, 10))
 
         # Allow the server some time to establish the connection on port 2222
-        time.sleep(1)
+        time.sleep(5)
         
         # At this point, the server on port 2222 will be handling connections from the server on port 1111.
         # No further action needed as the server is already running.
         
     except Exception as e:
         print(f"Error in simulate_client: {e}")
-    finally:
-        client_socket.close()
+    # finally:
+    #     client_socket.close()
 
 
 if __name__ == "__main__":

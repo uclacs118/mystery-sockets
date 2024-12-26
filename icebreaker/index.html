@@ -2,6 +2,7 @@
 <html>
 <head>
     <style>
+        /* Previous styles remain the same until table */
         body {
             font-family: Arial, sans-serif;
             max-width: 1200px;
@@ -17,25 +18,32 @@
         }
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             background-color: white;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            position: relative;
         }
         th {
             background-color: #4CAF50;
             color: white;
             padding: 12px;
             text-align: left;
+            position: relative;
         }
         td {
             padding: 12px;
             border-bottom: 1px solid #ddd;
+            background-color: white;
         }
-        tr:hover {
-            background-color: #f5f5f5;
+        tr {
+            position: absolute;
+            width: 100%;
+            transform-origin: 0 0;
+            transition: all 0.5s;
         }
         .status-open {
-            background-color: #90EE90;
+            background-color: #73dbed;
             padding: 5px 10px;
             border-radius: 4px;
         }
@@ -49,9 +57,20 @@
             padding: 5px 10px;
             border-radius: 4px;
         }
+        .status-completed {
+            background-color: #71ff92;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
         .data-cell {
             max-width: 300px;
             overflow-wrap: break-word;
+        }
+        tbody {
+            position: relative;
+        }
+        td, th {
+            width: 25vw;
         }
     </style>
     <script>
@@ -60,24 +79,49 @@
                 .then(response => response.json())
                 .then(data => {
                     const tbody = document.getElementById('connectionTable').getElementsByTagName('tbody')[0];
-                    tbody.innerHTML = '';
+                    const currentRows = new Map();
+                    const rowHeight = 70; // Height of each row including padding
                     
-                    data.forEach(conn => {
-                        const row = tbody.insertRow();
+                    // Map current rows
+                    Array.from(tbody.children).forEach(row => {
+                        const ip = row.children[0].textContent;
+                        currentRows.set(ip, row);
+                    });
+                    
+                    // Update or create rows
+                    data.forEach((conn, index) => {
+                        index = index + 1
+                        let row = currentRows.get(conn.ip);
+                        if (!row) {
+                            row = document.createElement('tr');
+                            row.style.transform = `translateY(${index * rowHeight}px)`;
+                            tbody.appendChild(row);
+                        }
+                        
                         row.innerHTML = `
                             <td>${conn.ip}</td>
                             <td>${conn.timestamp}</td>
                             <td><span class="status-${conn.status}">${conn.status}</span></td>
                             <td class="data-cell">${conn.data.join('<br>')}</td>
                         `;
+                        
+                        // Animate to new position
+                        requestAnimationFrame(() => {
+                            row.style.transform = `translateY(${index * rowHeight}px)`;
+                        });
+                        
+                        currentRows.delete(conn.ip);
+                    });
+                    
+                    // Remove old rows
+                    currentRows.forEach(row => {
+                        row.style.opacity = '0';
+                        setTimeout(() => row.remove(), 500);
                     });
                 });
         }
         
-        // Update every second
         setInterval(updateTable, 1000);
-        
-        // Initial update
         document.addEventListener('DOMContentLoaded', updateTable);
     </script>
 </head>
