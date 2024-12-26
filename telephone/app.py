@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import List, Dict
 import logging
 import concurrent.futures
+import signal
+import sys
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(threadName)s - %(levelname)s - %(message)s')
 
@@ -198,5 +200,10 @@ def start_socket_server():
         threading.Thread(target=game_server.handle_client, args=(client, address)).start()
 
 if __name__ == '__main__':
-    threading.Thread(target=start_socket_server).start()
+    def handle_sigterm(*args):
+        print("Received SIGTERM, shutting down...", flush=True)
+        sys.exit(0)
+    signal.signal(signal.SIGTERM, handle_sigterm)
+
+    threading.Thread(target=start_socket_server, daemon=True).start()
     app.run(port=8080)

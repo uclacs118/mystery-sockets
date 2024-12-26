@@ -5,6 +5,8 @@ import socketserver
 import json
 from collections import defaultdict
 import time
+import signal
+import sys
 
 connection_data = defaultdict(dict)
 connection_lock = threading.Lock()
@@ -211,8 +213,17 @@ def main():
     http_server.allow_reuse_address = True
     http_server.server_bind()
     http_server.server_activate()
-    print("Servers started. HTTP server on port 8080, TCP server on port 1111")
+
+    def shutdown_handler(signum, frame):
+        print("Shutdown signal received. Exiting...", flush=True)
+        sys.exit(0)
+    
+    signal.signal(signal.SIGTERM, shutdown_handler)
+
+    print("Servers started. HTTP server on port 8080, TCP server on port 1111\n", flush=True)
     http_server.serve_forever()
+
+
 
 if __name__ == '__main__':
     main()

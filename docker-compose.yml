@@ -13,10 +13,19 @@ services:
       context: .
       dockerfile: icebreaker/Dockerfile
     ports:
-      - "80:8080"
+      - "802${INSTANCE_NUM:-2}:8080"
     networks:
       iso:
-        ipv4_address: 10.0.0.${INSTANCE_NUM:-2}
+        ipv4_address: 10.2.0.${INSTANCE_NUM:-2}
+  telephone:
+    build:
+      context: .
+      dockerfile: telephone/Dockerfile
+    ports:
+      - "803${INSTANCE_NUM:-2}:8080"
+    networks:
+      iso:
+        ipv4_address: 10.3.0.${INSTANCE_NUM:-2}
 networks:
   iso:
     ipam:
